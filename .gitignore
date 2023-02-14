@@ -127,3 +127,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+data/
+exp/
+notes/
+.idea
+temp/
+unialign/ctc_segmentation/ctc_segmentation_dyn.c
+unialign/scripts
