@@ -12,8 +12,8 @@ except ImportError:
 ext = '.pyx' if USE_CYTHON else '.c'
 extensions = [
     Extension(
-        name="unialign.ctc_segmentation.ctc_segmentation_dyn",
-        sources=["unialign/ctc_segmentation/ctc_segmentation_dyn"+ext],
+        name="alqalign.ctc_segmentation.ctc_segmentation_dyn",
+        sources=["alqalign/ctc_segmentation/ctc_segmentation_dyn"+ext],
         include_dirs=[numpy.get_include()],
     )
 ]
@@ -42,7 +42,7 @@ def get_requirements():
 
 
 setup(
-   name='unialign',
+   name='alqalign',
    version='1.1.0',
    description='a text-speech alignment model',
    author='Xinjian Li',

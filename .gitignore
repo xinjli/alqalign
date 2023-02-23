@@ -132,5 +132,5 @@ exp/
 notes/
 .idea
 temp/
-unialign/ctc_segmentation/ctc_segmentation_dyn.c
-unialign/scripts
+alqalign/ctc_segmentation/ctc_segmentation_dyn.c
+alqalign/scripts
