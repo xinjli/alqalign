@@ -1,12 +1,12 @@
 from genericpath import exists
 from pathlib import Path
 from symbol import parameters
-from unialign.model import read_phoneme_inventory
+from alqalign.model import read_phoneme_inventory
 import torchaudio
-from unialign.config import logger
+from alqalign.config import logger
 import logging
 
-from unialign.ctc_segmentation.ctc_segmentation import (
+from alqalign.ctc_segmentation.ctc_segmentation import (
     CtcSegmentationParameters,
     ctc_segmentation,
     determine_utterance_segments,
@@ -16,7 +16,7 @@ from unialign.ctc_segmentation.ctc_segmentation import (
 
 from phonepiece.inventory import read_inventory
 import numpy as np
-from allospeech.audio import read_audio, slice_audio, write_audio
+from allosaurus.audio import read_audio, slice_audio, write_audio
 
 
 def align(audio_file, text_file, lang_id, data_dir, mode='sentence', threshold=-100.0, slice=False, verbose=False):

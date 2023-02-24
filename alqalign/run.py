@@ -1,8 +1,8 @@
-from unialign.process_audio import *
-from unialign.process_text import *
-from unialign.process_alignment import *
+from alqalign.process_audio import *
+from alqalign.process_text import *
+from alqalign.process_alignment import *
 from allosaurus.audio import find_audio
-from unialign.config import logger
+from alqalign.config import logger
 from pathlib import Path
 import argparse
 

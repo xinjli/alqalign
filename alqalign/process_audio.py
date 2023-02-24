@@ -2,8 +2,8 @@ from allosaurus.audio import read_audio, write_audio, split_audio, silent_audio,
 import numpy as np
 from pathlib import Path
 from tqdm import tqdm
-from unialign.config import logger
-from unialign.model import read_am
+from alqalign.config import logger
+from alqalign.model import read_am
 import datetime
 
 def transcribe_audio(audio_file, lang_id, data_dir, duration=15.0, batch_size=8, verbose=False):

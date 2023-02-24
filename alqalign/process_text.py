@@ -1,6 +1,6 @@
 from transphone.tokenizer import read_tokenizer
-from unialign.model import read_lm
-from unialign.utils import split_into_sentences
+from alqalign.model import read_lm
+from alqalign.utils import split_into_sentences
 from phonepiece.inventory import read_inventory
 from pathlib import Path
 import sys
