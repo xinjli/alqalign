@@ -43,7 +43,7 @@ def get_requirements():
 
 setup(
    name='alqalign',
-   version='1.1.0',
+   version='1.1.1',
    description='a text-speech alignment model',
    author='Xinjian Li',
    author_email='xinjianl@cs.cmu.edu',

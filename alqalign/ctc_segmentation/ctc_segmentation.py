@@ -363,7 +363,7 @@ def prepare_token_list(config, text):
     return ground_truth_mat, utt_begin_indices
 
 
-def determine_utterance_segments(config, utt_begin_indices, char_probs, timings, text):
+def determine_utterance_segments(config, utt_begin_indices, char_probs, timings, text, mode='sentence', verbose=False):
     """Utterance-wise alignments from char-wise alignments.
 
     :param config: an instance of CtcSegmentationParameters
@@ -374,6 +374,11 @@ def determine_utterance_segments(config, utt_begin_indices, char_probs, timings,
     :return: segments, a list of: utterance start and end [s], and its confidence score
     """
 
+    if mode == 'sentence' or mode == 'word':
+        boundary = 0.5
+    else:
+        boundary = 0.05
+
     def compute_time(index, align_type):
         """Compute start and end time of utterance.
 
@@ -381,19 +386,23 @@ def determine_utterance_segments(config, utt_begin_indices, char_probs, timings,
         :param align_type:  one of ["begin", "end"]
         :return: start/end time of utterance in seconds
         """
-        #return timings[index]
+
         if align_type == "begin":
             middle = (timings[index] + timings[index - 1]) / 2
-            return max(timings[index] - 0.05, middle)
+            return max(timings[index] - boundary, middle)
         elif align_type == "end":
-            middle = (timings[index] + timings[index + 1]) / 2
-            return min(timings[index] + 0.05, middle)
+            if index == len(timings)-1:
+                return timings[index] + boundary
+            else:
+                middle = (timings[index] + timings[index + 1]) / 2
+                return min(timings[index] + boundary, middle)
 
     segments = []
     min_prob = np.float64(-10000000000.0)
+
     for i in range(len(text)):
         start = compute_time(utt_begin_indices[i]+1, "begin")
-        end = compute_time(utt_begin_indices[i+1]-1, "end")
+        end = compute_time(utt_begin_indices[i+1], "end")
         start_t = int(round(start / config.index_duration_in_seconds))
         end_t = int(round(end / config.index_duration_in_seconds))
         # Compute confidence score by using the min mean probability

@@ -8,7 +8,7 @@ import tqdm
 import re
 import string
 
-def transcribe_text(text_file, lang_id, data_dir, mode='sentence'):
+def transcribe_text(text_file, lang_id, data_dir, mode='sentence', verbose=False):
 
     data_dir = Path(data_dir)
     data_dir.mkdir(exist_ok=True, parents=True)

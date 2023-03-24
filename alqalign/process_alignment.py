@@ -68,8 +68,11 @@ def align(audio_file, text_file, lang_id, data_dir, mode='sentence', threshold=-
 
     assert len(text) == len(phoneme), f"text file ({data_dir / 'postprocess_text.txt'}) has {len(text)} lines but phoneme file ({data_dir / 'phonemes.txt'}) has {len(phoneme)} lines"
 
+    print(timings)
+    print(utt_begin_indices)
+
     segments = determine_utterance_segments(
-        config, utt_begin_indices, char_probs, timings, text
+        config, utt_begin_indices, char_probs, timings, text, mode='sentence', verbose=verbose
     )
 
     audio = read_audio(audio_file, 16000)

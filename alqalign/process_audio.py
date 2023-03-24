@@ -20,7 +20,7 @@ def transcribe_audio(audio_file, lang_id, data_dir, duration=15.0, batch_size=8,
 
     am = read_am(lang_id)
 
-    logits, tokens = am.get_logits_batch(audio_lst, lang_id, batch_size=batch_size)
+    logits, decode_info_lst = am.get_logits_batch(audio_lst, lang_id, batch_size=batch_size)
 
     logit_lst = []
 
@@ -34,16 +34,25 @@ def transcribe_audio(audio_file, lang_id, data_dir, duration=15.0, batch_size=8,
     lpz.dump(data_dir / f'logit.npz')
 
     w = open(data_dir / f'decoded.txt', 'w')
-    for i, token_pair in enumerate(tokens):
+
+    #print(decode_info_lst)
+
+    for i, token_pair in enumerate(decode_info_lst):
         utt_id = token_pair[0]
-        token = token_pair[1]
+        decoded_info = token_pair[1]
 
         assert int(utt_id) == i
 
-        start_time = str(datetime.timedelta(seconds=i*duration))
-        end_time = str(datetime.timedelta(seconds=(i+1)*duration))
+        chunk_start_time = i*duration
+        # chunk_end_time = str(datetime.timedelta(seconds=(i+1)*duration))
 
-        w.write(f"{start_time} -> {end_time}: {token}\n")
+        for phone_info in decoded_info:
+            start_time = phone_info['start'] + chunk_start_time
+            duration = phone_info['duration']
+            phone = phone_info['phone']
+            prob = phone_info['prob']
+
+            w.write(f"{utt_id} {start_time:.3f} {duration:.3f} {phone} {prob}\n")
 
     w.close()
 
