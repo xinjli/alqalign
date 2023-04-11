@@ -47,6 +47,7 @@ if __name__ == '__main__':
     audio_files = []
     text_files = []
     output_dirs = []
+    utt_ids = []
 
     # audio files
     if audio_file.is_dir():
@@ -54,6 +55,7 @@ if __name__ == '__main__':
         for audio_path in audio_paths:
             utt_id = audio_path.stem
             utt2audio[utt_id] = audio_path
+
     elif str(audio_file).endswith('scp'):
         for line in open(audio_file):
             utt_id, ark_key = line.strip().split()
@@ -62,6 +64,7 @@ if __name__ == '__main__':
         audio_files = [audio_file]
         output_dirs = [output_dir]
         text_files = [text_file]
+        utt_ids = [audio_file.stem]
 
     # text files
     if text_file.is_dir():
@@ -71,6 +74,7 @@ if __name__ == '__main__':
                 audio_files.append(utt2audio[utt_id])
                 text_files.append(text_path)
                 output_dirs.append(output_dir / utt_id)
+                utt_ids.append(utt_id)
     else:
         for i, line in enumerate(open(text_file, 'r')):
             if text_format == 'kaldi':
@@ -85,37 +89,38 @@ if __name__ == '__main__':
                 audio_files.append(utt2audio[utt_id])
                 text_files.append(sent)
                 output_dirs.append(output_dir / utt_id)
+                utt_ids.append(utt_id)
 
-
-    total_file_cnt = len(audio_files)
+    total_file_cnt = len(utt_ids)
+    print(f"total {total_file_cnt} files to be processed")
     idx = 0
 
     if 1 in steps:
         logger.info("step 1: transcribe audios")
         idx = 0
-        for audio_file, output_dir in zip(audio_files, output_dirs):
+        for utt_id, audio_file, output_dir in zip(utt_ids, audio_files, output_dirs):
             if total_file_cnt != 1:
                 idx += 1
-                logger.info(f"processing audio {idx}/{total_file_cnt}: {audio_file.stem}")
+                logger.info(f"processing audio {idx}/{total_file_cnt}: {utt_id}")
 
             transcribe_audio(audio_file, lang_id, output_dir, batch_size=batch_size)
 
     if 2 in steps:
         logger.info("step 2: transcribing text")
         idx = 0
-        for text_file, output_dir in zip(text_files, output_dirs):
+        for text_file, output_dir, utt_id in zip(text_files, output_dirs, utt_ids):
             if total_file_cnt != 1:
                 idx += 1
-                logger.info(f"processing text {idx}/{total_file_cnt}: {text_file.stem}")
+                logger.info(f"processing text {idx}/{total_file_cnt}: {utt_id}")
 
             transcribe_text(text_file, lang_id, output_dir, mode)
 
     if 3 in steps:
         idx = 0
         logger.info('step 3: aligning')
-        for audio_file, text_file, output_dir in zip(audio_files, text_files, output_dirs):
+        for audio_file, text_file, output_dir, utt_id in zip(audio_files, text_files, output_dirs, utt_ids):
             if total_file_cnt != 1:
                 idx += 1
-                logger.info(f"processing alignment {idx}/{total_file_cnt}: {audio_file.stem}")
+                logger.info(f"processing alignment {idx}/{total_file_cnt}: {utt_id}")
 
-            align(audio_file, text_file, lang_id, output_dir, threshold=threshold, slice=slice, verbose=verbose)
+            align(audio_file, text_file, lang_id, output_dir, utt_id=utt_id, threshold=threshold, slice=slice, verbose=verbose)

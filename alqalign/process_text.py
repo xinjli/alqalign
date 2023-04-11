@@ -17,7 +17,7 @@ def transcribe_text(text_file, lang_id, data_dir, mode='sentence', verbose=False
 
     inventory = read_inventory(lang_id).phoneme
 
-    if Path(text_file).exists():
+    if ' ' not in text_file and Path(text_file).exists():
         r = open(text_file, 'r')
         lines = r.readlines()
         r.close()

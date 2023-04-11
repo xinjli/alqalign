@@ -20,12 +20,15 @@ from allosaurus.audio import read_audio, slice_audio, write_audio
 from alqalign.utils import read_audio_rspecifier
 
 
-def align(audio_file, text_file, lang_id, data_dir, mode='sentence', threshold=-100.0, slice=False, verbose=False):
+def align(audio_file, text_file, lang_id, data_dir, utt_id=None, mode='sentence', threshold=-100.0, slice=False, verbose=False):
 
     logit_file = data_dir / 'logit.npz'
     lpz = np.load(logit_file, allow_pickle=True)
 
-    audio_name = Path(audio_file).stem
+    if utt_id is None:
+        audio_name = Path(audio_file).stem
+    else:
+        audio_name = utt_id
 
     id_lst = []
 
@@ -45,9 +48,15 @@ def align(audio_file, text_file, lang_id, data_dir, mode='sentence', threshold=-
     ground_truth_mat, utt_begin_indices = prepare_token_list(config, id_lst)
 
     #print(ground_truth_mat)
+
+    if(len(ground_truth_mat) > lpz.shape[0]):
+        print("audio is shorter than text")
+        return
+
     timings, char_probs, state_list = ctc_segmentation(
         config, lpz, ground_truth_mat
     )
+
 
     text = []
     for line in open(data_dir / 'postprocess_text.txt', 'r'):
