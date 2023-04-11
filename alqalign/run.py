@@ -5,16 +5,20 @@ from allosaurus.audio import find_audio
 from alqalign.config import logger
 from pathlib import Path
 import argparse
-
+import kaldiio
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser('speech aligner')
     parser.add_argument('-t', '--text', help='path to a text file', required=True)
+    parser.add_argument('--text_format', help='text format', default='plain', choices=['plain', 'kaldi'])
     parser.add_argument('-a', '--audio', help='path to a audio file', required=True)
-    parser.add_argument('-o', '--output', help='path to the output directory', required=True)
-    parser.add_argument('-l', '--lang', help='target language', required=True)
-    parser.add_argument('-m', '--mode', help='sentence or word or phoneme', default='sentence')
+    parser.add_argument('--audio_format', help='audio format', default='wav', choices=['wav', 'scp'])
+
+    parser.add_argument('-o', '--output', help='path to the output directory', default='output')
+    parser.add_argument('-l', '--lang', help='target language', default='eng')
+
+    parser.add_argument('-m', '--mode', help='sentence or word or phoneme', default='sentence', choices=['sentence', 'word', 'phoneme'])
     parser.add_argument('-v', '--verbose', help='showing alignment log', default=False)
     parser.add_argument('--batch_size', help='threshold score', default=8)
     parser.add_argument('--threshold', help='threshold score', default=-3)
@@ -33,7 +37,7 @@ if __name__ == '__main__':
     batch_size = int(args.batch_size)
     slice=args.slice
     verbose=args.verbose
-
+    text_format = args.text_format
     mode=args.mode
 
     utt2audio = {}
@@ -44,26 +48,42 @@ if __name__ == '__main__':
     text_files = []
     output_dirs = []
 
-    if audio_file.is_dir() or text_file.is_dir():
-        assert audio_file.is_dir()
-        assert text_file.is_dir()
-
+    # audio files
     if audio_file.is_dir():
         audio_paths = find_audio(audio_file)
         for audio_path in audio_paths:
             utt_id = audio_path.stem
             utt2audio[utt_id] = audio_path
+    elif str(audio_file).endswith('scp'):
+        for line in open(audio_file):
+            utt_id, ark_key = line.strip().split()
+            utt2audio[utt_id] = ark_key
     else:
         audio_files = [audio_file]
         output_dirs = [output_dir]
         text_files = [text_file]
 
+    # text files
     if text_file.is_dir():
         for text_path in sorted(text_file.glob('*')):
             utt_id = text_path.stem
             if utt_id in utt2audio:
                 audio_files.append(utt2audio[utt_id])
                 text_files.append(text_path)
+                output_dirs.append(output_dir / utt_id)
+    else:
+        for i, line in enumerate(open(text_file, 'r')):
+            if text_format == 'kaldi':
+                fields = line.strip().split()
+                utt_id = fields[0]
+                sent = ' '.join(fields[1:])
+            else:
+                utt_id = str(i)
+                sent = line
+
+            if utt_id in utt2audio:
+                audio_files.append(utt2audio[utt_id])
+                text_files.append(sent)
                 output_dirs.append(output_dir / utt_id)
 
 

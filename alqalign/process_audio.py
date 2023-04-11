@@ -1,10 +1,14 @@
-from allosaurus.audio import read_audio, write_audio, split_audio, silent_audio, concatenate_audio
+from allosaurus.audio import read_audio, write_audio, split_audio, silent_audio, concatenate_audio, Audio
 import numpy as np
 from pathlib import Path
 from tqdm import tqdm
 from alqalign.config import logger
 from alqalign.model import read_am
 import datetime
+import kaldiio
+import torch
+from alqalign.utils import read_audio_rspecifier
+
 
 def transcribe_audio(audio_file, lang_id, data_dir, duration=15.0, batch_size=8, verbose=False):
 
@@ -13,7 +17,8 @@ def transcribe_audio(audio_file, lang_id, data_dir, duration=15.0, batch_size=8,
 
     data_dir.mkdir(parents=True, exist_ok=True)
 
-    audio = read_audio(audio_file, 16000)
+    audio = read_audio_rspecifier(audio_file)
+
     logger.info(f"total audio duration: {audio.duration()}")
 
     audio_lst = split_audio(audio, duration=duration)

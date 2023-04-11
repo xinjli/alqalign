@@ -17,6 +17,7 @@ from alqalign.ctc_segmentation.ctc_segmentation import (
 from phonepiece.inventory import read_inventory
 import numpy as np
 from allosaurus.audio import read_audio, slice_audio, write_audio
+from alqalign.utils import read_audio_rspecifier
 
 
 def align(audio_file, text_file, lang_id, data_dir, mode='sentence', threshold=-100.0, slice=False, verbose=False):
@@ -75,7 +76,7 @@ def align(audio_file, text_file, lang_id, data_dir, mode='sentence', threshold=-
         config, utt_begin_indices, char_probs, timings, text, mode='sentence', verbose=verbose
     )
 
-    audio = read_audio(audio_file, 16000)
+    audio = read_audio_rspecifier(audio_file)
 
     w_log = open(data_dir / 'log.txt', 'w')
 

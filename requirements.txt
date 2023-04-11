@@ -11,3 +11,4 @@ epitran
 unidecode
 setuptools
 Cython
+kaldiio

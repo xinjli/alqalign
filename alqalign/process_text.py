@@ -7,6 +7,8 @@ import sys
 import tqdm
 import re
 import string
+from pathlib import Path
+
 
 def transcribe_text(text_file, lang_id, data_dir, mode='sentence', verbose=False):
 
@@ -14,7 +16,15 @@ def transcribe_text(text_file, lang_id, data_dir, mode='sentence', verbose=False
     data_dir.mkdir(exist_ok=True, parents=True)
 
     inventory = read_inventory(lang_id).phoneme
-    r = open(text_file, 'r')
+
+    if Path(text_file).exists():
+        r = open(text_file, 'r')
+        lines = r.readlines()
+        r.close()
+
+    else:
+        assert isinstance(text_file, str)
+        lines = text_file
 
     lm = read_lm(lang_id)
 
@@ -22,13 +32,14 @@ def transcribe_text(text_file, lang_id, data_dir, mode='sentence', verbose=False
     w_phoneme = open(data_dir / 'phonemes.txt', 'w')
     w_text = open(data_dir / 'postprocess_text.txt', 'w')
 
-    lines = r.readlines()
-
     # if only contain 1 line, we split sentences
     if len(lines) == 1 and mode == 'sentence':
         raw_lines = split_into_sentences(lines[0])
 
         lines = [line.strip() for line in raw_lines if len(line.strip()) >= 1]
+    elif mode == 'word':
+        lines = lines.split()
+        print(lines)
 
     for i, line in enumerate(tqdm.tqdm(lines)):
         id_lst = []
@@ -56,6 +67,5 @@ def transcribe_text(text_file, lang_id, data_dir, mode='sentence', verbose=False
             w_phoneme.write(line.strip()+' | ' + ' '.join(phoneme_lst)+'\n')
             w_text.write(' '.join(words)+'\n')
 
-    r.close()
     w_id.close()
     w_phoneme.close()
