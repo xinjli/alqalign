@@ -23,7 +23,7 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', help='threshold score', default=8)
     parser.add_argument('--threshold', help='threshold score', default=-3)
     parser.add_argument('--step', default='1,2,3')
-    parser.add_argument('--slice', default=True)
+    parser.add_argument('--slice', default=False)
 
     args = parser.parse_args()
 

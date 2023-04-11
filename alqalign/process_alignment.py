@@ -82,8 +82,9 @@ def align(audio_file, text_file, lang_id, data_dir, mode='sentence', threshold=-
 
     w_ctm = open(data_dir / 'res.ctm', 'w')
 
-    output_dir = Path(data_dir / 'align')
-    output_dir.mkdir(exist_ok=True, parents=True)
+    if slice:
+        output_dir = Path(data_dir / 'align')
+        output_dir.mkdir(exist_ok=True, parents=True)
 
     all_count = len(segments)
     success_count = 0
@@ -104,14 +105,14 @@ def align(audio_file, text_file, lang_id, data_dir, mode='sentence', threshold=-
         w_log.write(log +'\n')
         w_ctm.write(ctm +'\n')
 
-        new_audio = slice_audio(audio, start, end)
-
         if threshold is None or score >= threshold:
             success_count += 1
-            # augment the channel dim
-            samples = new_audio.samples.unsqueeze(0)
-            filename = output_dir / f'{i:03d}.wav'
-            torchaudio.save(str(filename), samples, sample_rate=16000, bits_per_sample=16, encoding='PCM_S')
+
+            if slice:
+                new_audio = slice_audio(audio, start, end)
+                samples = new_audio.samples.unsqueeze(0)
+                filename = output_dir / f'{i:03d}.wav'
+                torchaudio.save(str(filename), samples, sample_rate=16000, bits_per_sample=16, encoding='PCM_S')
 
     log = f'successfully aligned {success_count} / {all_count}'
     print(log)
