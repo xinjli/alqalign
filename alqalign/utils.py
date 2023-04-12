@@ -16,7 +16,7 @@ digits = "([0-9])"
 
 def read_audio_rspecifier(audio_file):
 
-    if 'ark:' in audio_file:
+    if '.ark' in str(audio_file):
         mat = kaldiio.load_mat(audio_file)
         if isinstance(mat, tuple):
             sample_rate = mat[0]
