@@ -159,11 +159,6 @@ def ctc_segmentation(config, lpz, ground_truth):
         # Use array to log window offsets per character
         offsets = np.zeros([len(ground_truth)], dtype=np.int64)
 
-        print(table.shape)
-        print(lpz.shape)
-        print(ground_truth)
-        print(offsets)
-
         # Run actual alignment of utterances
         t, c = cython_fill_table(
             table,

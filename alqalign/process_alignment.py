@@ -19,10 +19,8 @@ import numpy as np
 from allosaurus.audio import read_audio, slice_audio, write_audio
 from alqalign.utils import read_audio_rspecifier
 
+def align(audio_file, text_file, lang_id, data_dir, utt_id=None, mode='sentence', threshold=-100.0, slice=False, format='kaldi', verbose=False):
 
-def align(audio_file, text_file, lang_id, data_dir, utt_id=None, mode='sentence', threshold=-100.0, slice=False, verbose=False):
-
-    print("Here")
     logit_file = data_dir / 'logit.npz'
     lpz = np.load(logit_file, allow_pickle=True)
 
@@ -66,7 +64,7 @@ def align(audio_file, text_file, lang_id, data_dir, utt_id=None, mode='sentence'
             continue
         text.append(line)
 
-    print(text)
+    #print(text)
 
     if len(id_lst) != len(text):
         print(f"text file ({data_dir / 'postprocess_text.txt'}) has {len(text)} lines but id file ({data_dir / 'ids.txt'}) has {len(id_lst)} lines")
@@ -93,7 +91,17 @@ def align(audio_file, text_file, lang_id, data_dir, utt_id=None, mode='sentence'
 
     w_log = open(data_dir / 'log.txt', 'w')
 
-    w_ctm = open(data_dir / 'result.ctm', 'w')
+    w_ctm = None
+    w_text = None
+    w_segments = None
+    w_score = None
+
+    if format == 'kaldi':
+        w_text = open(data_dir / 'text', 'w')
+        w_segments = open(data_dir / 'segments', 'w')
+        w_score = open(data_dir / 'score', 'w')
+    else:
+        w_ctm = open(data_dir / 'result.ctm', 'w')
 
     if slice:
         output_dir = Path(data_dir / 'audios')
@@ -107,28 +115,46 @@ def align(audio_file, text_file, lang_id, data_dir, utt_id=None, mode='sentence'
         end = seg[1] + 0.01
         score = seg[2]
 
-        log = f'{i:03d}: time: {start:07.2f}:{end:07.2f} score: {score:04.2f}, text: {phoneme[i]}'
+        # utterance id has the format "original-id - index - start_time - end_time"
+        utt_id = f'{audio_name}-{i:05d}-{"%07d" % int(start*100)}-{"%07d" % int(end*100)}'
 
+        # write logs
+        log = f'{i:04d}: time: {start:07.2f}:{end:07.2f} score: {score:04.2f}, text: {phoneme[i]}'
         if verbose:
             print(log)
 
-        word = phoneme[i].split('|')[0].strip()
-        ctm = f'{audio_name} 1 {start:.2f} {end-start:.2f} {word.upper()} {score:04.2f}'
-
         w_log.write(log +'\n')
-        w_ctm.write(ctm +'\n')
+
+        # write main result
+        word = phoneme[i].split('|')[0].strip()
+
+        if format == 'kaldi':
+            w_text.write(f"{utt_id} {word.upper()}\n")
+            w_segments.write(f"{utt_id} {audio_name} {start:.2f} {end:.2f}\n")
+            w_score.write(f"{utt_id} {score:.2f}\n")
+
+        else:
+            ctm = f'{audio_name} 1 {start:.2f} {end-start:.2f} {word.upper()} {score:04.2f}'
+            w_ctm.write(ctm +'\n')
 
         if threshold is None or score >= threshold:
             success_count += 1
 
-            if slice:
-                new_audio = slice_audio(audio, start, end)
-                samples = new_audio.samples.unsqueeze(0)
-                filename = output_dir / f'{i:03d}.wav'
-                torchaudio.save(str(filename), samples, sample_rate=16000, bits_per_sample=16, encoding='PCM_S')
+        if slice:
+            new_audio = slice_audio(audio, start, end)
+            samples = new_audio.samples.unsqueeze(0)
+            filename = output_dir / f'{utt_id}.wav'
+            torchaudio.save(str(filename), samples, sample_rate=16000, bits_per_sample=16, encoding='PCM_S')
 
     log = f'successfully aligned {success_count} / {all_count}'
     print(log)
 
     w_log.write(log+'\n')
     w_log.close()
+
+    if format == 'kaldi':
+        w_text.close()
+        w_segments.close()
+        w_score.close()
+    else:
+        w_ctm.close()
