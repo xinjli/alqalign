@@ -12,3 +12,4 @@ unidecode
 setuptools
 Cython
 kaldiio
+transphone>=1.4.0

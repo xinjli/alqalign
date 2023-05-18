@@ -1,7 +1,7 @@
 from transphone.tokenizer import read_tokenizer
 import panphon
 from phonepiece.inventory import read_inventory
-from allosaurus.recognizer import read_recognizer
+from allosaurus.app import read_recognizer
 
 # models are singletons
 am_ = None
@@ -25,7 +25,7 @@ def read_am(lang_id):
     if am_ is not None:
         return am_
 
-    am_ = read_recognizer('23020401')
+    am_ = read_recognizer()
     return am_
 
 

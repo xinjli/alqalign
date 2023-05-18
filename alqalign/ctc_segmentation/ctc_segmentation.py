@@ -149,6 +149,7 @@ def ctc_segmentation(config, lpz, ground_truth):
         raise AssertionError("Audio is shorter than text!")
     window_size = config.min_window_size
     # Try multiple window lengths if it fails
+
     while True:
         # Create table of alignment probabilities
         table = np.zeros(
@@ -157,6 +158,12 @@ def ctc_segmentation(config, lpz, ground_truth):
         table.fill(config.max_prob)
         # Use array to log window offsets per character
         offsets = np.zeros([len(ground_truth)], dtype=np.int64)
+
+        print(table.shape)
+        print(lpz.shape)
+        print(ground_truth)
+        print(offsets)
+
         # Run actual alignment of utterances
         t, c = cython_fill_table(
             table,
@@ -166,6 +173,7 @@ def ctc_segmentation(config, lpz, ground_truth):
             config.blank,
             config.flags,
         )
+
         if config.backtrack_from_max_t:
             t = table.shape[0] - 1
         logger.info(

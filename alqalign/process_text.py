@@ -35,11 +35,7 @@ def transcribe_text(text_file, lang_id, data_dir, mode='sentence', verbose=False
     # if only contain 1 line, we split sentences
     if len(lines) == 1 and mode == 'sentence':
         raw_lines = split_into_sentences(lines[0])
-
         lines = [line.strip() for line in raw_lines if len(line.strip()) >= 1]
-    elif mode == 'word':
-        lines = lines.split()
-        print(lines)
 
     for i, line in enumerate(tqdm.tqdm(lines)):
         id_lst = []

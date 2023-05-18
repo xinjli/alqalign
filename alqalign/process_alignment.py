@@ -22,6 +22,7 @@ from alqalign.utils import read_audio_rspecifier
 
 def align(audio_file, text_file, lang_id, data_dir, utt_id=None, mode='sentence', threshold=-100.0, slice=False, verbose=False):
 
+    print("Here")
     logit_file = data_dir / 'logit.npz'
     lpz = np.load(logit_file, allow_pickle=True)
 
@@ -57,15 +58,18 @@ def align(audio_file, text_file, lang_id, data_dir, utt_id=None, mode='sentence'
         config, lpz, ground_truth_mat
     )
 
-
     text = []
+
     for line in open(data_dir / 'postprocess_text.txt', 'r'):
         line = line.strip()
         if len(line) == 0:
             continue
         text.append(line)
 
-    assert len(id_lst) == len(text), f"text file ({data_dir / 'postprocess_text.txt'}) has {len(text)} lines but id file ({data_dir / 'ids.txt'}) has {len(id_lst)} lines"
+    print(text)
+
+    if len(id_lst) != len(text):
+        print(f"text file ({data_dir / 'postprocess_text.txt'}) has {len(text)} lines but id file ({data_dir / 'ids.txt'}) has {len(id_lst)} lines")
 
     phoneme = []
     for line in open(data_dir / 'phonemes.txt', 'r'):
@@ -78,8 +82,8 @@ def align(audio_file, text_file, lang_id, data_dir, utt_id=None, mode='sentence'
 
     assert len(text) == len(phoneme), f"text file ({data_dir / 'postprocess_text.txt'}) has {len(text)} lines but phoneme file ({data_dir / 'phonemes.txt'}) has {len(phoneme)} lines"
 
-    print(timings)
-    print(utt_begin_indices)
+    logger.info(timings)
+    logger.info(utt_begin_indices)
 
     segments = determine_utterance_segments(
         config, utt_begin_indices, char_probs, timings, text, mode='sentence', verbose=verbose
@@ -89,10 +93,10 @@ def align(audio_file, text_file, lang_id, data_dir, utt_id=None, mode='sentence'
 
     w_log = open(data_dir / 'log.txt', 'w')
 
-    w_ctm = open(data_dir / 'res.ctm', 'w')
+    w_ctm = open(data_dir / 'result.ctm', 'w')
 
     if slice:
-        output_dir = Path(data_dir / 'align')
+        output_dir = Path(data_dir / 'audios')
         output_dir.mkdir(exist_ok=True, parents=True)
 
     all_count = len(segments)
@@ -125,5 +129,6 @@ def align(audio_file, text_file, lang_id, data_dir, utt_id=None, mode='sentence'
 
     log = f'successfully aligned {success_count} / {all_count}'
     print(log)
+
     w_log.write(log+'\n')
     w_log.close()

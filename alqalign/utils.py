@@ -34,6 +34,7 @@ def read_audio_rspecifier(audio_file):
 
 def split_into_sentences(text):
     text = " " + text + "  "
+    if "。" in text: text = text.replace("。",". ")
     text = text.replace("\n"," ")
     text = re.sub(prefixes,"\\1<prd>",text)
     text = re.sub(websites,"<prd>\\1",text)
@@ -49,12 +50,14 @@ def split_into_sentences(text):
     text = re.sub(" " + alphabets + "[.]"," \\1<prd>",text)
     if "”" in text: text = text.replace(".”","”.")
     if "\"" in text: text = text.replace(".\"","\".")
+    if "！" in text: text = text.replace("！", "!")
     if "!" in text: text = text.replace("!\"","\"!")
+    if "？" in text: text = text.replace("？", "?")
     if "?" in text: text = text.replace("?\"","\"?")
     text = text.replace(".","<stop>")
     text = text.replace("?","<stop>")
     text = text.replace("!","<stop>")
     text = text.replace("<prd>",".")
     sentences = text.split("<stop>")
-    sentences = [s.strip() for s in sentences]
+    sentences = [s for s in [s.strip() for s in sentences] if len(s) > 0]
     return sentences

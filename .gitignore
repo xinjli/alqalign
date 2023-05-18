@@ -136,3 +136,4 @@ alqalign/ctc_segmentation/ctc_segmentation_dyn.c
 alqalign/scripts
 .DS_Store
 scripts/
+samples/output/
