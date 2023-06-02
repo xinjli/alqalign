@@ -1,7 +1,6 @@
 scipy
 numpy
 panphon
-torch
 editdistance
 requests
 tqdm
@@ -13,3 +12,5 @@ setuptools
 Cython
 kaldiio
 transphone>=1.4.0
+torch
+torchaudio

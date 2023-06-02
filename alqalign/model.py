@@ -1,7 +1,7 @@
 from transphone.tokenizer import read_tokenizer
 import panphon
 from phonepiece.inventory import read_inventory
-from allosaurus.app import read_recognizer
+from alqalign.am.recognizer import read_recognizer
 
 # models are singletons
 am_ = None
