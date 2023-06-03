@@ -57,7 +57,7 @@ def read_record(record_input, segment_duration=-1):
         utt_ids = []
         utt2audio = {}
 
-        for audiofile in tqdm.tdqm(audio_lst):
+        for audiofile in tqdm.tqdm(audio_lst):
             utt_id = audiofile.stem
             register_and_segment_audio(utt_id, audiofile, utt_ids, utt2audio, segment_duration)
 
@@ -178,6 +178,8 @@ class Record:
             audio = audio_or_audio_file
         else:
             segment_idx = -1
+
+            audio_file = audio_or_audio_file
 
             if self.segment_duration > 0 and self.is_partial_path(audio_file):
                 segment_idx = int(str(audio_file)[-4:])
