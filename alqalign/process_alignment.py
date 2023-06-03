@@ -18,7 +18,7 @@ from phonepiece.inventory import read_inventory
 import numpy as np
 from alqalign.audio import read_audio, slice_audio, write_audio
 
-def align(audio_file, text_file, lang_id, data_dir, utt_id=None, mode='sentence', threshold=-100.0, slice=False, format='kaldi', verbose=False):
+def process_alignment(audio_file, text_file, lang_id, data_dir, utt_id=None, mode='sentence', threshold=-100.0, slice=False, format='kaldi', verbose=False):
 
     logit_file = data_dir / 'logit.npz'
     lpz = np.load(logit_file, allow_pickle=True)

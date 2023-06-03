@@ -1,5 +1,10 @@
 from alqalign.model import read_am, read_phoneme_inventory, read_lm
+from alqalign.process_audio import transcribe_audio
+from alqalign.process_text import transcribe_text
+from alqalign.process_alignment import process_alignment
 import numpy as np
+from pathlib import Path
+import tempfile
 
 from alqalign.ctc_segmentation.ctc_segmentation import (
     CtcSegmentationParameters,
@@ -8,6 +13,48 @@ from alqalign.ctc_segmentation.ctc_segmentation import (
     prepare_text,
     prepare_token_list,
 )
+
+
+def align(audio, text, lang_id='eng', mode='sentence'):
+
+    result = []
+
+    with tempfile.TemporaryDirectory() as output_dir:
+        output_dir = Path(output_dir)
+        # step 1
+        transcribe_audio(audio, lang_id, output_dir)
+
+        # step 2
+        transcribe_text(text, lang_id, output_dir, mode=mode)
+
+        # step 3
+        process_alignment(audio, text, lang_id, output_dir, mode=mode)
+
+        segments_lines = open(output_dir / 'segments', 'r').readlines()
+        text_lines = open(output_dir / 'text', 'r').readlines()
+        score_lines = open(output_dir / 'score', 'r').readlines()
+
+        for i in range(len(segments_lines)):
+            segments = segments_lines[i].strip().split()
+            text = text_lines[i].strip()
+            score = float(score_lines[i].strip().split()[1])
+
+            utt_dict = {}
+
+            utt_id = segments[0]
+            utt_dict['utt_id'] = utt_id
+
+            start = float(segments[2])
+            end = float(segments[3])
+
+            utt_dict['start'] = start
+            utt_dict['end'] = end
+            utt_dict['text'] = text.split(' ', 1)[1]
+            utt_dict['score'] = score
+            result.append(utt_dict)
+
+    return result
+
 
 def compute_alignment_score(audio, text, lang_id):
 

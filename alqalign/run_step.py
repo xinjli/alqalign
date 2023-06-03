@@ -1,6 +1,6 @@
 from alqalign.process_audio import *
 from alqalign.process_text import *
-from alqalign.process_alignment import *
+from alqalign.process_alignment import process_alignment
 from alqalign.audio import find_audio
 from alqalign.config import logger
 from pathlib import Path
@@ -124,6 +124,6 @@ if __name__ == '__main__':
                 logger.info(f"processing alignment {idx}/{total_file_cnt}: {utt_id}")
 
             try:
-                align(audio_file, text_file, lang_id, output_dir, utt_id=utt_id, threshold=threshold, slice=slice, verbose=verbose)
+                process_alignment(audio_file, text_file, lang_id, output_dir, utt_id=utt_id, threshold=threshold, slice=slice, verbose=verbose)
             except:
                 logger.info(f"failed to align: {utt_id}")

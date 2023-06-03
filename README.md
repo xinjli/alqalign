@@ -1,6 +1,6 @@
 # ALQAlign
 
-under construction.
+![CI Test](https://github.com/xinjli/alqalign/actions/workflows/python.yml/badge.svg)
 
 alqalign is a phoneme-based multilingual speech alignment toolkit. 
 
@@ -14,14 +14,35 @@ python setup.py install
 
 ## Usage
 
-The basic usage with main configures is as follows, For the details of usage, check the [instruction page](./doc/instruction.md).
+The basic command-line usage with main configures is as follows:
 
+For the details of usage, check the [instruction page](./doc/instruction.md).
 
 ```bash
 python -m alqalign.run  --lang   <your target language> 
                         --audio  <path to your audio file> 
                         --text   <path to your text file> 
                         --output <path to an output directory>
+```
+
+
+You can also use it directly as follows:
+
+```python
+In [1]: from alqalign.app import align
+
+In [2]: align('./samples/eng/utt.wav', './samples/eng/utt.txt', 'eng')
+Out[2]:
+[{'utt_id': 'utt-00000-0000028-0000367',
+  'start': 0.28,
+  'end': 3.67,
+  'text': 'A PROGRAMMER WALKS TO THE BUTCHER SHOP AND BUYS A KILO OF MEAT.',
+  'score': -0.14},
+ {'utt_id': 'utt-00001-0000384-0000917',
+  'start': 3.85,
+  'end': 9.17,
+  'text': 'AN HOUR LATER HE COMES BACK UPSET THAT THE BUTCHER SHORTCHANGED HIM BY 24 GRAMS.',
+  'score': -0.13}]
 ```
 
 ## Tutorial
