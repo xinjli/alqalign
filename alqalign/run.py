@@ -1,6 +1,6 @@
 from alqalign.process_audio import *
 from alqalign.process_text import *
-from alqalign.process_alignment import *
+from alqalign.process_alignment import process_alignment
 from alqalign.audio import find_audio
 from alqalign.config import logger
 from pathlib import Path
@@ -113,7 +113,7 @@ if __name__ == '__main__':
         transcribe_audio(audio_file, lang_id, output_dir, batch_size=batch_size, force=args.force)
         transcribe_text(text_file, lang_id, output_dir, mode)
         try:
-            align(audio_file, text_file, lang_id, output_dir, utt_id=utt_id, threshold=threshold, slice=slice, verbose=verbose, format=args.output_format)
+            process_alignment(audio_file, text_file, lang_id, output_dir, utt_id=utt_id, threshold=threshold, slice=slice, verbose=verbose, format=args.output_format)
         except:
             logger.info(f"failed to align: {utt_id}")
 

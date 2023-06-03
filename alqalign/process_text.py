@@ -1,13 +1,7 @@
-from transphone.tokenizer import read_tokenizer
 from alqalign.model import read_lm
 from alqalign.utils.text import split_into_sentences
 from alqalign.model import read_phoneme_inventory
-from phonepiece.inventory import read_inventory
-from pathlib import Path
-import sys
 import tqdm
-import re
-import string
 from pathlib import Path
 
 

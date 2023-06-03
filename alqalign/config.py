@@ -10,6 +10,7 @@ logger = logging.getLogger('alqalign')
 root_path=Path(__file__).absolute().parent
 data_path=root_path/'data'
 model_path =  data_path / 'model'
+sample_path = root_path.parent / 'samples'
 
 class dotdict(dict):
     """dot.notation access to dictionary attributes"""
