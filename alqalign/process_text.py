@@ -1,6 +1,7 @@
 from transphone.tokenizer import read_tokenizer
 from alqalign.model import read_lm
-from alqalign.utils import split_into_sentences
+from alqalign.utils.text import split_into_sentences
+from alqalign.model import read_phoneme_inventory
 from phonepiece.inventory import read_inventory
 from pathlib import Path
 import sys
@@ -15,7 +16,7 @@ def transcribe_text(text_file, lang_id, data_dir, mode='sentence', verbose=False
     data_dir = Path(data_dir)
     data_dir.mkdir(exist_ok=True, parents=True)
 
-    inventory = read_inventory(lang_id).phoneme
+    inventory = read_phoneme_inventory(lang_id)
 
     if ' ' not in str(text_file) and Path(text_file).exists():
         r = open(text_file, 'r')

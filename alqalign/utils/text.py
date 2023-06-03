@@ -1,9 +1,5 @@
-# -*- coding: utf-8 -*-
-# reference: adapted from https://stackoverflow.com/questions/4576077/how-can-i-split-a-text-into-sentences
-import kaldiio
 import re
-from allosaurus.audio import read_audio, write_audio, split_audio, silent_audio, concatenate_audio, Audio
-import torch
+
 
 alphabets= "([A-Za-z])"
 prefixes = "(Mr|St|Mrs|Ms|Dr)[.]"
@@ -13,24 +9,6 @@ acronyms = "([A-Z][.][A-Z][.](?:[A-Z][.])?)"
 websites = "[.](com|net|org|io|gov|edu|me)"
 digits = "([0-9])"
 
-
-def read_audio_rspecifier(audio_file):
-
-    if '.ark' in str(audio_file):
-        mat = kaldiio.load_mat(audio_file)
-        if isinstance(mat, tuple):
-            sample_rate = mat[0]
-            samples = torch.from_numpy(mat[1].astype('float32'))
-        else:
-            sample_rate = 16000
-            samples = torch.from_numpy(mat.astype('float32'))
-
-        audio = Audio(samples, sample_rate)
-
-    else:
-        audio = read_audio(audio_file, 16000)
-
-    return audio
 
 def split_into_sentences(text):
     text = " " + text + "  "
@@ -61,3 +39,4 @@ def split_into_sentences(text):
     sentences = text.split("<stop>")
     sentences = [s for s in [s.strip() for s in sentences] if len(s) > 0]
     return sentences
+
