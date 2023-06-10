@@ -37,7 +37,7 @@ class AcousticModel:
 
         self.model = model
         self.config = config
-        self.device_id = self.config.rank
+        self.device_id = -1
 
     def cuda(self):
         self.model = self.model.cuda()
@@ -60,8 +60,18 @@ class AcousticModel:
 
         result = self.model(feat, feat_length, meta)
 
+        # decode output into logit_lst
         output = result['output'].detach()
         output_length = result['output_length']
+        logits = move_to_ndarray(output)
+        logits_length = move_to_ndarray(output_length)
+
+        assert len(logits) == len(logits_length)
+
+        logit_lst = []
+        for ii in range(len(logits)):
+            logit = logits[ii][:logits_length[ii]]
+            logit_lst.append(logit)
 
         emit = 1.0
         if 'emit' in sample:
@@ -76,13 +86,13 @@ class AcousticModel:
             topk = sample['topk']
 
         if format == 'logit':
-            return output
+            return logit_lst
         elif format == 'both':
-            decoded_info = self.decode(output, output_length, topk, emit)
-            return output, decoded_info
+            decoded_info = self.decode(logit_lst, topk, emit)
+            return logit_lst, decoded_info
 
         else:
-            decoded_info = self.decode(output, output_length, topk, emit)
+            decoded_info = self.decode(logit_lst, topk, emit)
 
             return decoded_info
 
@@ -160,18 +170,13 @@ class AcousticModel:
 
         return error_cnt, total_cnt, target_tokens, decoded_tokens
 
-    def decode(self, output, output_length, topk=1, emit=1.0):
-
-        logits = move_to_ndarray(output)
-        logits_length = move_to_ndarray(output_length)
-
-        assert len(logits) == len(logits_length)
+    def decode(self, logit_lst, topk=1, emit=1.0):
 
         decoded_lst = []
 
-        for ii in range(len(logits)):
+        for ii in range(len(logit_lst)):
 
-            logit = logits[ii][:logits_length[ii]]
+            logit = logit_lst[ii]
 
             emit_frame_idx = []
 
@@ -209,7 +214,7 @@ class AcousticModel:
 
                 start_timestamp = self.config.window_shift * idx
                 end_timestamp = self.config.window_shift * next_idx
-                duration = min(1.0, end_timestamp - start_timestamp)
+                duration = min(0.2, end_timestamp - start_timestamp)
 
                 info = {'start': self.config.window_shift * idx,
                         'duration': duration,

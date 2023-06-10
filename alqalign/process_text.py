@@ -5,7 +5,7 @@ import tqdm
 from pathlib import Path
 
 
-def transcribe_text(text_file, lang_id, data_dir, mode='sentence', verbose=False):
+def transcribe_text(text_file, lang_id, data_dir, mode='sentence', device=None, verbose=False):
 
     data_dir = Path(data_dir)
     data_dir.mkdir(exist_ok=True, parents=True)
@@ -21,7 +21,7 @@ def transcribe_text(text_file, lang_id, data_dir, mode='sentence', verbose=False
         assert isinstance(text_file, str)
         lines = text_file
 
-    lm = read_lm(lang_id)
+    lm = read_lm(lang_id, device=device)
 
     w_id = open(data_dir / 'ids.txt', 'w')
     w_phoneme = open(data_dir / 'phonemes.txt', 'w')

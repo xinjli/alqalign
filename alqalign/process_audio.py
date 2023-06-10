@@ -3,7 +3,7 @@ from alqalign.model import read_am
 from alqalign.audio import read_audio
 
 
-def transcribe_audio(audio_file, lang_id, data_dir, duration=15.0, batch_size=8, force=False):
+def transcribe_audio(audio_file, lang_id, data_dir, duration=15.0, batch_size=8, device=None, force=False):
 
     if (data_dir / f'logit.npz').exists() and not force:
         return
@@ -14,7 +14,7 @@ def transcribe_audio(audio_file, lang_id, data_dir, duration=15.0, batch_size=8,
 
     logger.info(f"total audio duration: {audio.duration()}")
 
-    am = read_am(lang_id)
+    am = read_am(lang_id, device=device)
 
     # dump output results
     am.recognize(audio, lang_id, output=data_dir, batch_size=batch_size, segment_duration=duration, verbose=True, logit=True)
