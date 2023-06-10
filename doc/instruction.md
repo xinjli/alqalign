@@ -86,7 +86,6 @@ utt1-00000-0000028-0000367 -0.14
 utt1-00001-0000384-0000917 -0.13
 ```
 
-
 ### mode
 
 There are three alignment `modes` in alqalign, it is default to `sentence`
@@ -108,6 +107,11 @@ $ ls ./audios
 utt1-00000-0000028-0000367.wav
 utt1-00001-0000384-0000917.wav
 ```
+
+### ngpu
+
+You can specify the `ngpu` to use multiple gpus for alignment when there are multiple files to process.
+
 
 ### language
 

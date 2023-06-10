@@ -11,6 +11,6 @@ unidecode
 setuptools
 Cython
 kaldiio
-transphone>=1.4.0
+transphone>=1.5.3
 torch
 torchaudio

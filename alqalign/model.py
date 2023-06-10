@@ -17,23 +17,23 @@ def read_phoneme_inventory(lang_id):
     phoneme_dict_[lang_id] = phoneme_inv
     return phoneme_inv
 
-def read_am(lang_id):
+def read_am(lang_id, device=None):
 
     global am_
 
     if am_ is not None:
         return am_
 
-    am_ = read_recognizer()
+    am_ = read_recognizer(device=device)
     return am_
 
 
-def read_lm(lang_id):
+def read_lm(lang_id, device=None):
 
     global lm_dict_
 
     if lang_id in lm_dict_:
         return lm_dict_[lang_id]
 
-    lm_dict_[lang_id] = read_tokenizer(lang_id)
+    lm_dict_[lang_id] = read_tokenizer(lang_id, device=device)
     return lm_dict_[lang_id]

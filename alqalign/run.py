@@ -8,6 +8,37 @@ import argparse
 import kaldiio
 import shutil
 from distutils.util import strtobool
+import torch
+
+
+def process(utt_ids, audio_files, text_files, output_dirs, lang_id, mode='sentence',
+            device=None, batch_size=32, output_format='kaldi', slice=False, force=False, keep_logit=False, debug=False):
+
+    for utt_id, audio_file, text_file, output_dir in zip(utt_ids, audio_files, text_files, output_dirs):
+
+        if force and output_dir.exists():
+            print(f"cleaning {output_dir}")
+            shutil.rmtree(output_dir, ignore_errors=True)
+
+        transcribe_audio(audio_file, lang_id, output_dir, device=device, batch_size=batch_size, force=force)
+        transcribe_text(text_file, lang_id, output_dir, mode, device=device)
+        try:
+            process_alignment(audio_file, text_file, lang_id, output_dir, utt_id=utt_id, slice=slice,
+                              verbose=debug, format=output_format)
+        except:
+            logger.info(f"failed to align: {utt_id}")
+
+        # delete logit if necessary
+        if not keep_logit:
+            for path in output_dir.glob('logit.npz'):
+                path.unlink()
+
+        # delete intermediate artifacts if necessary
+        if not debug:
+            artifacts = ['phonemes.txt', 'ids.txt', 'decode.txt', 'detail.txt', 'postprocess_text.txt', 'log.txt']
+            for artifact in artifacts:
+                if (output_dir / artifact).exists():
+                    (output_dir / artifact).unlink()
 
 
 if __name__ == '__main__':
@@ -23,6 +54,7 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--output', help='path to the output directory', default='output')
     parser.add_argument('--output_format', help='audio format of the given input audio file', default='kaldi', choices=['ctm', 'kaldi'])
     parser.add_argument('-m', '--mode', help='alignment mode: sentence or word or phoneme', default='sentence', choices=['sentence', 'word', 'phoneme'])
+    parser.add_argument('--ngpu', help='distributed alignment when multiple gpu is available', type=int)
 
     # other configures
     parser.add_argument('-v', '--verbose', help='showing alignment log', default=False)
@@ -31,7 +63,7 @@ if __name__ == '__main__':
     parser.add_argument('--threshold', help='threshold score', default=-3)
     parser.add_argument('--slice', help='whether to extract the aligned audio files', default=False)
     parser.add_argument('--force', help='ignoring previous cached results, re-align from scratch', default="false", type=strtobool)
-    parser.add_argument('--debug', help='keep intermediate artifacts for debugging purpose', default="true", type=strtobool)
+    parser.add_argument('--debug', help='keep intermediate artifacts for debugging purpose', default="false", type=strtobool)
 
     args = parser.parse_args()
 
@@ -45,6 +77,7 @@ if __name__ == '__main__':
     slice=args.slice
     verbose=args.verbose
     text_format = args.text_format
+    output_format = args.output_format
     mode=args.mode
     keep_logit=args.keep_logit
     debug = args.debug
@@ -102,29 +135,30 @@ if __name__ == '__main__':
 
     total_file_cnt = len(utt_ids)
     print(f"total {total_file_cnt} files to be processed")
-    idx = 0
 
-    for utt_id, audio_file, text_file, output_dir in zip(utt_ids, audio_files, text_files, output_dirs):
-        if args.force and output_dir.exists():
-            print(f"cleaning {output_dir}")
-            shutil.rmtree(output_dir, ignore_errors=True)
+    ngpu = args.ngpu
 
-        logger.info(f"processing audio {idx}: {total_file_cnt}: {utt_id}")
-        transcribe_audio(audio_file, lang_id, output_dir, batch_size=batch_size, force=args.force)
-        transcribe_text(text_file, lang_id, output_dir, mode)
-        try:
-            process_alignment(audio_file, text_file, lang_id, output_dir, utt_id=utt_id, threshold=threshold, slice=slice, verbose=verbose, format=args.output_format)
-        except:
-            logger.info(f"failed to align: {utt_id}")
+    if ngpu is not None and ngpu >= 2:
+        print("distributed alignment")
 
-        # delete logit if necessary
-        if not keep_logit:
-            for path in output_dir.glob('logit.npz'):
-                path.unlink()
+        torch.multiprocessing.set_start_method('spawn')
 
-        # delete intermediate artifacts if necessary
-        if not debug:
-            artifacts = ['phonemes.txt', 'ids.txt', 'decode.txt', 'detail.txt']
-            for artifact in artifacts:
-                if (output_dir / artifact).exists():
-                    (output_dir / artifact).unlink()
+        from multiprocessing import Process
+        proc_lst = []
+
+        for i in range(ngpu):
+            proc = Process(target=process, args=(utt_ids[i::ngpu], audio_files[i::ngpu], text_files[i::ngpu], output_dirs[i::ngpu], lang_id, mode, i, batch_size, output_format, slice, args.force, keep_logit))
+            proc.start()
+            proc_lst.append(proc)
+
+        for proc in proc_lst:
+            proc.join()
+
+    else:
+
+        if ngpu is None or ngpu == 0:
+            device = -1
+        else:
+            device = 0
+
+        process(utt_ids, audio_files, text_files, output_dirs, lang_id, mode, device, batch_size, output_format, slice=slice, force=args.force, keep_logit=keep_logit, debug=debug)

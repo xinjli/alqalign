@@ -117,23 +117,23 @@ def process_alignment(audio_file, text_file, lang_id, data_dir, utt_id=None, mod
         # utterance id has the format "original-id - index - start_time - end_time"
         utt_id = f'{audio_name}-{i:05d}-{"%07d" % int(start*100)}-{"%07d" % int(end*100)}'
 
+        text_line = text[i].strip()
+
         # write logs
-        log = f'{i:04d}: time: {start:07.2f}:{end:07.2f} score: {score:04.2f}, text: {phoneme[i]}'
+        log = f'{i:04d}: time: {start:07.2f}:{end:07.2f} score: {score:04.2f}, text: {text_line}'
         if verbose:
             print(log)
 
         w_log.write(log +'\n')
 
         # write main result
-        word = phoneme[i].split('|')[0].strip()
-
         if format == 'kaldi':
-            w_text.write(f"{utt_id} {word.upper()}\n")
+            w_text.write(f"{utt_id} {text_line.upper()}\n")
             w_segments.write(f"{utt_id} {audio_name} {start:.2f} {end:.2f}\n")
             w_score.write(f"{utt_id} {score:.2f}\n")
 
         else:
-            ctm = f'{audio_name} 1 {start:.2f} {end-start:.2f} {word.upper()} {score:04.2f}'
+            ctm = f'{audio_name} 1 {start:.2f} {end-start:.2f} {text_line.upper()} {score:04.2f}'
             w_ctm.write(ctm +'\n')
 
         if threshold is None or score >= threshold:
