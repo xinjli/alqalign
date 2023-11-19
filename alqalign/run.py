@@ -23,7 +23,7 @@ def process(utt_ids, audio_files, text_files, output_dirs, lang_id, mode='senten
         transcribe_audio(audio_file, lang_id, output_dir, device=device, batch_size=batch_size, force=force)
         transcribe_text(text_file, lang_id, output_dir, mode, device=device)
         try:
-            process_alignment(audio_file, text_file, lang_id, output_dir, utt_id=utt_id, slice=slice,
+            process_alignment(audio_file, text_file, lang_id, output_dir, utt_id=utt_id, mode=mode, slice=slice,
                               verbose=debug, format=output_format)
         except:
             logger.info(f"failed to align: {utt_id}")
@@ -50,7 +50,7 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--text', help='path to a text file or a directory containing text files', required=True)
     parser.add_argument('--text_format', help='text format of the given input text file.', default='plain', choices=['plain', 'kaldi'])
     parser.add_argument('-a', '--audio', help='path to a audio file or a directory containing audio files', required=True)
-    parser.add_argument('--audio_format', help='audio format of the given input audio file', default='wav', choices=['wav', 'scp'])
+    parser.add_argument('--audio_format', help='audio format of the given input audio file', default='wav', choices=['wav', 'kaldi'])
     parser.add_argument('-o', '--output', help='path to the output directory', default='output')
     parser.add_argument('--output_format', help='audio format of the given input audio file', default='kaldi', choices=['ctm', 'kaldi'])
     parser.add_argument('-m', '--mode', help='alignment mode: sentence or word or phoneme', default='sentence', choices=['sentence', 'word', 'phoneme'])
@@ -77,6 +77,7 @@ if __name__ == '__main__':
     slice=args.slice
     verbose=args.verbose
     text_format = args.text_format
+    audio_format = args.audio_format
     output_format = args.output_format
     mode=args.mode
     keep_logit=args.keep_logit
@@ -98,7 +99,7 @@ if __name__ == '__main__':
             utt_id = audio_path.stem
             utt2audio[utt_id] = audio_path
 
-    elif str(audio_file).endswith('scp'):
+    elif str(audio_file).endswith('scp') or audio_format == 'kaldi':
         for line in open(audio_file):
             utt_id, ark_key = line.strip().split()
             utt2audio[utt_id] = ark_key

@@ -53,7 +53,7 @@ def transcribe_text(text_file, lang_id, data_dir, mode='sentence', device=None, 
                 phoneme_lst.extend(phonemes)
                 word_lst.append(word)
 
-        if mode == 'sentence':
+        if mode == 'sentence' or mode == 'phoneme':
             w_id.write(' '.join(map(str, id_lst))+'\n')
             w_phoneme.write(line.strip()+' | ' + ' '.join(phoneme_lst)+'\n')
             w_text.write(' '.join(words)+'\n')

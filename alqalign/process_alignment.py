@@ -31,10 +31,14 @@ def process_alignment(audio_file, text_file, lang_id, data_dir, utt_id=None, mod
     id_lst = []
 
     for line in open(data_dir / 'ids.txt', 'r'):
-        ids = np.array(list(map(int, line.strip().split())))
+        ids = list(map(int, line.strip().split()))
         if len(ids) == 0:
             continue
-        id_lst.append(ids)
+
+        if mode == 'phoneme':
+            id_lst.extend([np.array([id_elem]) for id_elem in ids])
+        else:
+            id_lst.append(np.array(ids))
 
     inventory = read_phoneme_inventory(lang_id)
 
@@ -43,9 +47,8 @@ def process_alignment(audio_file, text_file, lang_id, data_dir, utt_id=None, mod
     config.char_list = inventory.elems[:-1]
     config.index_duration = 0.02
     #config.blank_transition_cost_zero = True
-    ground_truth_mat, utt_begin_indices = prepare_token_list(config, id_lst)
 
-    #print(ground_truth_mat)
+    ground_truth_mat, utt_begin_indices = prepare_token_list(config, id_lst)
 
     if(len(ground_truth_mat) > lpz.shape[0]):
         print("audio is shorter than text")
@@ -55,27 +58,37 @@ def process_alignment(audio_file, text_file, lang_id, data_dir, utt_id=None, mod
         config, lpz, ground_truth_mat
     )
 
-    text = []
-
-    for line in open(data_dir / 'postprocess_text.txt', 'r'):
-        line = line.strip()
-        if len(line) == 0:
-            continue
-        text.append(line)
-
-    #print(text)
-
-    if len(id_lst) != len(text):
-        print(f"text file ({data_dir / 'postprocess_text.txt'}) has {len(text)} lines but id file ({data_dir / 'ids.txt'}) has {len(id_lst)} lines")
 
     phoneme = []
     for line in open(data_dir / 'phonemes.txt', 'r'):
         line = line.strip()
 
-        if len(line.split('|')[1].strip()) == 0:
+        phoneme_lst = line.split('|')[1].strip().split()
+
+        if len(phoneme_lst) == 0:
             continue
 
-        phoneme.append(line)
+        if mode == 'phoneme':
+            phoneme.extend(phoneme_lst)
+        else:
+            phoneme.append(line)
+
+    text = []
+
+    if mode == 'phoneme':
+        text = phoneme
+    else:
+        for line in open(data_dir / 'postprocess_text.txt', 'r'):
+            line = line.strip()
+            if len(line) == 0:
+                continue
+            text.append(line)
+
+    # print(text)
+
+    if len(id_lst) != len(text):
+        print(
+            f"text file ({data_dir / 'postprocess_text.txt'}) has {len(text)} lines but id file ({data_dir / 'ids.txt'}) has {len(id_lst)} lines")
 
     assert len(text) == len(phoneme), f"text file ({data_dir / 'postprocess_text.txt'}) has {len(text)} lines but phoneme file ({data_dir / 'phonemes.txt'}) has {len(phoneme)} lines"
 
@@ -126,14 +139,17 @@ def process_alignment(audio_file, text_file, lang_id, data_dir, utt_id=None, mod
 
         w_log.write(log +'\n')
 
+        if mode != 'phoneme':
+            text_line = text_line.upper()
+
         # write main result
         if format == 'kaldi':
-            w_text.write(f"{utt_id} {text_line.upper()}\n")
+            w_text.write(f"{utt_id} {text_line}\n")
             w_segments.write(f"{utt_id} {audio_name} {start:.2f} {end:.2f}\n")
             w_score.write(f"{utt_id} {score:.2f}\n")
 
         else:
-            ctm = f'{audio_name} 1 {start:.2f} {end-start:.2f} {text_line.upper()} {score:04.2f}'
+            ctm = f'{audio_name} 1 {start:.2f} {end-start:.2f} {text_line} {score:04.2f}'
             w_ctm.write(ctm +'\n')
 
         if threshold is None or score >= threshold:
